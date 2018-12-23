@@ -1,5 +1,6 @@
 package codesquad.service;
 
+import codesquad.UnAuthorizedException;
 import codesquad.domain.Question;
 import codesquad.domain.QuestionRepository;
 import codesquad.domain.User;
@@ -11,6 +12,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import support.test.BaseTest;
 
+import java.util.Optional;
+
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -21,23 +24,40 @@ public class QnaServiceTest extends BaseTest {
     @InjectMocks
     private QnaService qnaService;
 
-    public static User testUser = new User(1, "finn", "1234", "동선", "choi@naver.com");
-    public static Question testQuestion = new Question("title", "contents");
+    public static User user = new User(1, "finn", "test", "choi", "choi@naver.com");
+    public static Question question = new Question("title", "contents");
+    public static Question updatedQuestion = new Question("updatedTitle", "updatedContents");
 
     @Before
     public void setUp() throws Exception {
-        testQuestion.writeBy(testUser);
-        testQuestion.setId(1);
+        question.writeBy(user);
+        question.setId(1);
+        updatedQuestion.writeBy(user);
+        updatedQuestion.setId(1);
     }
 
     @Test
     public void create() {
         Question createdQuestion = new Question("title", "contents");
-        createdQuestion.writeBy(testUser);
+        createdQuestion.writeBy(user);
         when(questionRepository.save(createdQuestion)).thenReturn(createdQuestion);
 
-        Question result = qnaService.create(testUser, new Question("title", "contents"));
+        Question result = qnaService.create(user, new Question("title", "contents"));
         softly.assertThat(result).isEqualTo(createdQuestion);
     }
 
+    @Test
+    public void update() {
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(qnaService.update(user, 1, new Question("updatedTitle", "updatedContents"))).thenReturn(updatedQuestion);
+
+        qnaService.update(user, 1, new Question("updatedTitle", "updatedContents"));
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void update_not_owner() {
+        when(qnaService.update(user, 1, new Question("updatedTitle", "updatedContents"))).thenReturn(updatedQuestion);
+
+        qnaService.update(User.GUEST_USER, 1, new Question("updatedTitle", "updatedContents"));
+    }
 }

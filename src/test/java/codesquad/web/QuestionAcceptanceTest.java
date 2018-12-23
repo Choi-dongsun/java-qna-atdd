@@ -1,10 +1,12 @@
 package codesquad.web;
 
+import codesquad.UnAuthorizedException;
 import codesquad.domain.QuestionRepository;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,5 +56,67 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         log.debug("body : {}", response.getBody());
 
         softly.assertThat(response.getBody()).contains(defaultUser().getName());
+    }
+
+    @Test
+    public void show() {
+        ResponseEntity<String> response = template().getForEntity("/questions/1", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        log.debug("body : {}", response.getBody());
+
+        softly.assertThat(response.getBody()).contains(questionRepository.findById(1L).get().getContents());
+    }
+
+    @Test
+    public void updateForm_no_login() {
+        ResponseEntity<String> response = template().getForEntity(String.format("/questions/1/form"), String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void updateForm_not_owner() {
+        ResponseEntity<String> response = basicAuthTemplate().getForEntity("/questions/2/form", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void updateForm() {
+        ResponseEntity<String> response = basicAuthTemplate().getForEntity(String.format("/questions/1/form"), String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        log.debug("body : {}", response.getBody());
+    }
+
+    private ResponseEntity<String> update(TestRestTemplate template) throws UnAuthorizedException {
+        HttpEntity<MultiValueMap<String, Object>> request =
+                HtmlFormDataBuilder.urlEncodedForm().put()
+                        .addParameter("title", "국내에서 Django가 활성화되지 않은 이유가 뭘까?")
+                        .addParameter("contents", "Django 어렵더라")
+                        .build();
+
+        return template.postForEntity("/questions/1", request, String.class);
+    }
+
+    @Test
+    public void update_no_login() {
+        ResponseEntity<String> response = update(template());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void update_not_owner() {
+        ResponseEntity<String> response = update(basicAuthTemplate(otherUser()));
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void update() {
+        ResponseEntity<String> response = update(basicAuthTemplate());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        log.debug("body : {}", response.getBody());
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions/1");
     }
 }
