@@ -119,4 +119,32 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         log.debug("body : {}", response.getBody());
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions/1");
     }
+
+    private ResponseEntity<String> delete(TestRestTemplate template) {
+        HttpEntity<MultiValueMap<String, Object>> request =
+                HtmlFormDataBuilder.urlEncodedForm().delete()
+                        .build();
+
+        return template.postForEntity("/questions/1", request, String.class);
+    }
+
+    @Test
+    public void delete_no_login() {
+        ResponseEntity<String> response = delete(template());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void delete_not_owner() {
+        ResponseEntity<String> response = delete(basicAuthTemplate(otherUser()));
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions/1");
+    }
+
+    @Test
+    public void delete() {
+        ResponseEntity<String> response = delete(basicAuthTemplate());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
+    }
 }

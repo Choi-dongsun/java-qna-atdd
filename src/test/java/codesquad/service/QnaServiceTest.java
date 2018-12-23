@@ -25,6 +25,7 @@ public class QnaServiceTest extends BaseTest {
     private QnaService qnaService;
 
     public static User user = new User(1, "finn", "test", "choi", "choi@naver.com");
+    public static User other = new User(2, "pobi", "test", "park", "park@naver.com");
     public static Question question = new Question("title", "contents");
     public static Question updatedQuestion = new Question("updatedTitle", "updatedContents");
 
@@ -59,5 +60,26 @@ public class QnaServiceTest extends BaseTest {
         when(qnaService.update(user, 1, new Question("updatedTitle", "updatedContents"))).thenReturn(updatedQuestion);
 
         qnaService.update(User.GUEST_USER, 1, new Question("updatedTitle", "updatedContents"));
+    }
+
+    @Test
+    public void delete() throws Exception {
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+
+        qnaService.delete(user, 1);
+    }
+
+    @Test(expected = Exception.class)
+    public void delete_no_login() throws Exception {
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+
+        qnaService.delete(null, 1);
+    }
+
+    @Test(expected = Exception.class)
+    public void delete_not_owner() throws Exception {
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+
+        qnaService.delete(other, 1);
     }
 }
