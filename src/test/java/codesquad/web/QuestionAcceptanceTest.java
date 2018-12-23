@@ -21,7 +21,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     private QuestionRepository questionRepository;
 
     @Test
-    public void createFormWithoutLogin() throws Exception {
+    public void createForm_no_login() throws Exception {
         ResponseEntity<String> response = template().getForEntity("/questions/form", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("body : {}", response.getBody());
