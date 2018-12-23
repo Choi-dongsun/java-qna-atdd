@@ -1,7 +1,6 @@
 package codesquad.web;
 
 import codesquad.domain.QuestionRepository;
-import codesquad.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,5 +45,14 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(questionRepository.findByTitle("질문제목").isPresent()).isTrue();
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
+    }
+
+    @Test
+    public void list() throws Exception {
+        ResponseEntity<String> response = template().getForEntity("/", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        log.debug("body : {}", response.getBody());
+
+        softly.assertThat(response.getBody()).contains(defaultUser().getName());
     }
 }
