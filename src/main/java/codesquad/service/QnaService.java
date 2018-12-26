@@ -41,14 +41,13 @@ public class QnaService {
         Question question = findById(loginUser, id);
         question.update(loginUser, updatedQuestion);
 
-        return questionRepository.save(question);
+        return question;
     }
 
     @Transactional
     public void delete(User loginUser, long id) throws Exception {
         Question question = findById(loginUser, id);
         question.delete(loginUser);
-        questionRepository.save(question);
     }
 
     public Question findById(User loginUser, long id) {
