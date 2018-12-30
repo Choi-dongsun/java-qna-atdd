@@ -1,11 +1,14 @@
 package codesquad.domain;
 
+import codesquad.CannotDeleteException;
 import codesquad.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -73,6 +76,17 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         if (!isOwner(loginUser)) throw new UnAuthorizedException();
         this.contents = contents;
         return this;
+    }
+
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
+        if(!isOwner(loginUser)) throw new CannotDeleteException("You can't delete this article.");
+        this.deleted = true;
+
+        List<DeleteHistory> temp = new ArrayList<>();
+        temp.add(new DeleteHistory(getId(), ContentType.ANSWER, writer));
+
+        return temp;
+
     }
 
     @Override

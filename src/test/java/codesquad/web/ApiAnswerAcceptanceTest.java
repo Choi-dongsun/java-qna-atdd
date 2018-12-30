@@ -16,8 +16,7 @@ import static codesquad.domain.UserTest.other;
 
 public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiAnswerAcceptanceTest.class);
-    public static final String URL = "/api/questions/1/answers";
-
+    public static final String URL = "/api/questions/1/answers/";
 
     private String location;
 
@@ -58,7 +57,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     public void update_not_owner() {
         ResponseEntity<String> responseEntity = updateResponse(basicAuthTemplate(other));
 
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("error message : {}", responseEntity.getBody());
     }
 
@@ -69,7 +68,30 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
+
+    @Test
+    public void delete_no_login() {
+        ResponseEntity<String> responseEntity = deleteResponse(template());
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void delete_not_owner() {
+        ResponseEntity<String> responseEntity = deleteResponse(basicAuthTemplate(other));
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void delete() {
+        ResponseEntity<String> responseEntity = deleteResponse(basicAuthTemplate());
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
     private ResponseEntity<String> updateResponse(TestRestTemplate testRestTemplate) {
         return testRestTemplate.exchange(location, HttpMethod.PUT, createHttpEntity(ANSWER), String.class);
+    }
+
+    private ResponseEntity<String> deleteResponse(TestRestTemplate testRestTemplate) {
+        return testRestTemplate.exchange(location, HttpMethod.DELETE, createHttpEntity(null), String.class);
     }
 }

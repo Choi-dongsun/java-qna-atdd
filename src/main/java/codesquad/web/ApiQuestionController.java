@@ -39,4 +39,13 @@ public class ApiQuestionController {
         return qnaService.update(loginUser, id, updatedQuestion);
     }
 
+    @DeleteMapping("{id}")
+    public ResponseEntity<Question> delete(@LoginUser User loginUser, @PathVariable long id) {
+        try {
+            qnaService.delete(loginUser, id);
+            return new ResponseEntity<Question>(qnaService.findById(id).get(), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<Question>(HttpStatus.UNAUTHORIZED);
+        }
+    }
 }

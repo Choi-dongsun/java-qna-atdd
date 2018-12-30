@@ -37,4 +37,15 @@ public class ApiAnswerController {
     public Answer update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody String contents) {
         return qnaService.updateAnswer(loginUser, id, contents);
     }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> delete(@LoginUser User loginUser, @PathVariable long id){
+        try {
+            qnaService.deleteAnswer(loginUser, id);
+            return new ResponseEntity<Void>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
 }

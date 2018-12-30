@@ -47,7 +47,7 @@ public class QnaService {
     @Transactional
     public void delete(User loginUser, long id) throws Exception {
         Question question = findById(loginUser, id);
-        question.delete(loginUser);
+        deleteHistoryService.saveAll(question.delete(loginUser));
     }
 
     public Question findById(User loginUser, long id) {
@@ -77,13 +77,14 @@ public class QnaService {
 
     @Transactional
     public Answer updateAnswer(User loginUser, long id, String contents) {
-        Answer answer = answerRepository.findById(id).orElseThrow(UnAuthorizedException::new);
-
+        Answer answer = findByAnswerId(id);
         return answer.update(loginUser, contents);
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public void deleteAnswer(User loginUser, long id) throws Exception {
+        Answer answer = findByAnswerId(id);
+
+        deleteHistoryService.saveAll(answer.delete(loginUser));
     }
 }
