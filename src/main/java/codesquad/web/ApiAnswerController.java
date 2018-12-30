@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
@@ -30,5 +31,10 @@ public class ApiAnswerController {
     @GetMapping("{id}")
     public Answer show(@PathVariable long id) {
         return qnaService.findByAnswerId(id);
+    }
+
+    @PutMapping("{id}")
+    public Answer update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody String contents) {
+        return qnaService.updateAnswer(loginUser, id, contents);
     }
 }

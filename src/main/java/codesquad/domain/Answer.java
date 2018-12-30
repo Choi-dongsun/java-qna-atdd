@@ -1,5 +1,6 @@
 package codesquad.domain;
 
+import codesquad.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -26,6 +27,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     }
 
     public Answer(User writer, String contents) {
+        if (writer == null) throw new UnAuthorizedException();
         this.writer = writer;
         this.contents = contents;
     }
@@ -65,6 +67,12 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public Answer update(User loginUser, String contents) {
+        if (!isOwner(loginUser)) throw new UnAuthorizedException();
+        this.contents = contents;
+        return this;
     }
 
     @Override

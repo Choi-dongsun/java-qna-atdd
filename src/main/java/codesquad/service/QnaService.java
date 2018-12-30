@@ -75,6 +75,13 @@ public class QnaService {
         return question.addAnswer(answer);
     }
 
+    @Transactional
+    public Answer updateAnswer(User loginUser, long id, String contents) {
+        Answer answer = answerRepository.findById(id).orElseThrow(UnAuthorizedException::new);
+
+        return answer.update(loginUser, contents);
+    }
+
     public Answer deleteAnswer(User loginUser, long id) {
         // TODO 답변 삭제 기능 구현 
         return null;
