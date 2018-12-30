@@ -72,10 +72,4 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private ResponseEntity<String> updateResponse(TestRestTemplate testRestTemplate) {
         return testRestTemplate.exchange(location, HttpMethod.PUT, createHttpEntity(updatedQuestion), String.class);
     }
-
-    private HttpEntity createHttpEntity(Object body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity(body, headers);
-    }
 }
