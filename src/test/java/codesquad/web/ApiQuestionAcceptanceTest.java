@@ -15,7 +15,7 @@ import static codesquad.domain.QuestionTest.updatedQuestion;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
-    private static final String URL = "/api/questions";
+    public static final String URL = "/api/questions";
 
     private String location;
 

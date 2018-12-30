@@ -12,7 +12,7 @@ import static codesquad.domain.UserTest.user;
 
 public class ApiUserAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiUserAcceptanceTest.class);
-    private static final String URL = "/api/users";
+    public static final String URL = "/api/users";
 
     @Test
     public void create() throws Exception {

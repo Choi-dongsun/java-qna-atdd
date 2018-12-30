@@ -64,9 +64,11 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Question question = findById(questionId).get();
+        Answer answer = new Answer(loginUser, contents);
+        return question.addAnswer(answer);
     }
 
     public Answer deleteAnswer(User loginUser, long id) {
