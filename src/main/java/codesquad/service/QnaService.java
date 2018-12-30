@@ -64,6 +64,10 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    public Answer findByAnswerId(long id) {
+        return answerRepository.findById(id).get();
+    }
+
     @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Question question = findById(questionId).get();

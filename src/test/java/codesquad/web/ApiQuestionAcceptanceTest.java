@@ -25,18 +25,18 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void create() {
-        Question dbQuestion = getResource(location, Question.class, defaultUser());
-
-        softly.assertThat(dbQuestion).isNotNull();
-    }
-
-    @Test
     public void create_no_login() {
         ResponseEntity<String> response = template().postForEntity(URL, question, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("error message : {}", response.getBody());
+    }
+
+    @Test
+    public void create() {
+        Question dbQuestion = getResource(location, Question.class, defaultUser());
+
+        softly.assertThat(dbQuestion).isNotNull();
     }
 
     @Test

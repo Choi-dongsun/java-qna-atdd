@@ -26,4 +26,9 @@ public class ApiAnswerController {
         headers.setLocation(URI.create("/api/questions/" + questionId + "/answers/" + savedAnswer.getId()));
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
+
+    @GetMapping("{id}")
+    public Answer show(@PathVariable long id) {
+        return qnaService.findByAnswerId(id);
+    }
 }
