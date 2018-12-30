@@ -11,6 +11,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -89,6 +90,15 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public void delete(User loginUser) throws CannotDeleteException{
         if (!isOwner(loginUser)) throw new CannotDeleteException("You can't delete this article.");
         this.deleted = true;
+    }
+
+    public boolean isEqual(Question question) {
+        if (Objects.isNull(question)) {
+            return false;
+        }
+
+        return title.equals(question.title) &&
+                contents.equals(question.contents);
     }
 
     @Override
