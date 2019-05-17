@@ -57,6 +57,62 @@ public class UserAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
+    public void loginForm() throws Exception {
+        ResponseEntity<String> response = template().getForEntity("/users/login", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void login() throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        params.add("userId", "javajigi");
+        params.add("password", "test");
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
+
+        ResponseEntity<String> response = basicAuthTemplate().postForEntity("/users/login", request, String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    }
+
+    @Test
+    public void login_not_exist_user() throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        String nonExistUser = "javajigi1";
+        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        params.add("userId", nonExistUser);
+        params.add("password", "test");
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
+
+        ResponseEntity<String> response = basicAuthTemplate().postForEntity("/users/login", request, String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getBody()).contains("틀립니다");
+    }
+
+    @Test
+    public void login_wrong_password() throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        String wrongPassword = "test1";
+        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        params.add("userId", "javajigi");
+        params.add("password", wrongPassword);
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
+
+        ResponseEntity<String> response = basicAuthTemplate().postForEntity("/users/login", request, String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getBody()).contains("틀립니다");
+    }
+
+    @Test
     public void updateForm_no_login() throws Exception {
         ResponseEntity<String> response = template().getForEntity(String.format("/users/%d/form", defaultUser().getId()),
                 String.class);
