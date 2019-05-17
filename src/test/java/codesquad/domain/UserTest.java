@@ -5,26 +5,26 @@ import org.junit.Test;
 import support.test.BaseTest;
 
 public class UserTest extends BaseTest {
-    public static final User JAVAJIGI = new User(1L, "javajigi", "password", "name", "javajigi@slipp.net");
-    public static final User SANJIGI = new User(2L, "sanjigi", "password", "name", "sanjigi@slipp.net");
+    public static final User MOVINGLINE = new User(1L, "movingline", "123456", "name", "movinglinecheck@gmail.com");
+    public static final User ZINGOWORKS = new User(2L, "zingoworks", "123456", "name", "zingoworks@gmail.com");
 
     public static User newUser(Long id) {
-        return new User(id, "userId", "pass", "name", "javajigi@slipp.net");
+        return new User(id, "userId", "1234", "name", "movinglinecheck@gmail.com");
     }
 
     public static User newUser(String userId) {
-        return newUser(userId, "password");
+        return newUser(userId, "123456");
     }
 
     public static User newUser(String userId, String password) {
-        return new User(0L, userId, password, "name", "javajigi@slipp.net");
+        return new User(0L, userId, password, "name", "movinglinecheck@gmail.com");
     }
 
     @Test
     public void update_owner() throws Exception {
-        User origin = newUser("sanjigi");
+        User origin = newUser("movingline");
         User loginUser = origin;
-        User target = new User("sanjigi", "password", "name2", "javajigi@slipp.net2");
+        User target = new User("movingline", "123456", "name", "movinglinecheck@gmail.com");
         origin.update(loginUser, target);
         softly.assertThat(origin.getName()).isEqualTo(target.getName());
         softly.assertThat(origin.getEmail()).isEqualTo(target.getEmail());
@@ -32,16 +32,16 @@ public class UserTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void update_not_owner() throws Exception {
-        User origin = newUser("sanjigi");
-        User loginUser = newUser("javajigi");
-        User target = new User("sanjigi", "password", "name2", "javajigi@slipp.net2");
+        User origin = newUser("zingoworks");
+        User loginUser = newUser("movingline");
+        User target = new User("zingoworks", "123456", "name", "zingoworks@gmail.com");
         origin.update(loginUser, target);
     }
 
     @Test
     public void update_match_password() {
-        User origin = newUser("sanjigi");
-        User target = new User("sanjigi", "password", "name2", "javajigi@slipp.net2");
+        User origin = newUser("movingline");
+        User target = new User("movingline", "123456", "name", "movinglinecheck@gmail.com");
         origin.update(origin, target);
         softly.assertThat(origin.getName()).isEqualTo(target.getName());
         softly.assertThat(origin.getEmail()).isEqualTo(target.getEmail());
@@ -49,8 +49,8 @@ public class UserTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void update_mismatch_password() {
-        User origin = newUser("sanjigi", "password");
-        User target = new User("sanjigi", "password2", "name2", "javajigi@slipp.net2");
+        User origin = newUser("movingline", "123456");
+        User target = new User("movingline", "1234567", "name", "movinglinecheck@gmail.com");
         origin.update(origin, target);
     }
 }

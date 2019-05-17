@@ -25,7 +25,7 @@ public class UserValidationTest extends BaseTest {
 
     @Test
     public void userIdWhenIsEmpty() throws Exception {
-        User user = new User("", "password", "name", "javajigi@slipp.net");
+        User user = new User("", "123456", "name", "movingline@gmail.com");
         Set<ConstraintViolation<User>> constraintViolcations = validator.validate(user);
         softly.assertThat(constraintViolcations).hasSize(1);
 
