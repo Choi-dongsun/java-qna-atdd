@@ -34,7 +34,7 @@ public class LoginUserHandlerMethodArgumentResolverTest extends BaseTest {
 
     @Test
     public void loginUser_normal() throws Exception {
-        User sessionUser = new User("sanjigi", "password", "name", "javajigi@slipp.net");
+        User sessionUser = new User("movingline", "password", "name", "movingline@gmail.com");
         when(request.getAttribute(HttpSessionUtils.USER_SESSION_KEY, WebRequest.SCOPE_SESSION)).thenReturn(sessionUser);
 
         User loginUser = (User) loginUserHandlerMethodArgumentResolver.resolveArgument(parameter, null, request, null);

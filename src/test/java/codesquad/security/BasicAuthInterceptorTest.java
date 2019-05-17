@@ -27,7 +27,7 @@ public class BasicAuthInterceptorTest extends BaseTest {
         String userId = "userId";
         String password = "password";
         MockHttpServletRequest request = basicAuthHttpRequest(userId, password);
-        User loginUser = new User(userId, "password", "name", "javajigi@slipp.net");
+        User loginUser = new User(userId, "password", "name", "movingline@gmail.com");
         when(userService.login(userId, password)).thenReturn(loginUser);
 
         basicAuthInterceptor.preHandle(request, null, null);

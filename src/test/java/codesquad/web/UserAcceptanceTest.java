@@ -27,12 +27,12 @@ public class UserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() throws Exception {
-        String userId = "testuser";
+        String userId = "movingline1";
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .addParameter("userId", userId)
-                .addParameter("password", "password")
-                .addParameter("name", "자바지기")
-                .addParameter("email", "javajigi@slipp.net").build();
+                .addParameter("password", "123456")
+                .addParameter("name", "무빙라인1")
+                .addParameter("email", "movingline1@gmail.com").build();
 
         ResponseEntity<String> response = template().postForEntity("/users", request, String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
@@ -58,8 +58,8 @@ public class UserAcceptanceTest extends AcceptanceTest {
     @Test
     public void login() throws Exception {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("userId", "javajigi")
-                .addParameter("password", "test").build();
+                .addParameter("userId", "movingline")
+                .addParameter("password", "123456").build();
 
         ResponseEntity<String> response = basicAuthTemplate().postForEntity("/users/login", request, String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
@@ -67,10 +67,10 @@ public class UserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void login_not_exist_user() throws Exception {
-        String nonExistUser = "javajigi1";
+        String nonExistUser = "movingline99";
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .addParameter("userId", nonExistUser)
-                .addParameter("password", "test").build();
+                .addParameter("password", "123456").build();
 
         ResponseEntity<String> response = basicAuthTemplate().postForEntity("/users/login", request, String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -79,9 +79,9 @@ public class UserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void login_wrong_password() throws Exception {
-        String wrongPassword = "test1";
+        String wrongPassword = "1234567";
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("userId", "javajigi")
+                .addParameter("userId", "movingline")
                 .addParameter("password", wrongPassword).build();
 
         ResponseEntity<String> response = basicAuthTemplate().postForEntity("/users/login", request, String.class);
@@ -114,9 +114,9 @@ public class UserAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("password", "test")
-                .addParameter("name", "자바지기2")
-                .addParameter("email", "javajigi@slipp.net").put().build();
+                .addParameter("password", "123456")
+                .addParameter("name", "무빙라인2")
+                .addParameter("email", "movingline2@gmail.com").put().build();
 
         return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);
     }

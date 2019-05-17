@@ -17,7 +17,7 @@ public class LoggingAspectTest {
 
     @Test
     public void logging() {
-        User user = new User("aspectuser", "password", "name2", "javajigi@slipp.net2");
+        User user = new User("aspectuser", "password", "name2", "movingline@gmail.com2");
         userController.create(user);
     }
 }

@@ -14,7 +14,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() throws Exception {
-        User newUser = newUser("testuser1");
+        User newUser = newUser("movingline2");
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
@@ -25,7 +25,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void show_다른_사람() throws Exception {
-        User newUser = newUser("testuser2");
+        User newUser = newUser("movinglin2");
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
@@ -36,7 +36,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update() throws Exception {
-        User newUser = newUser("testuser3");
+        User newUser = newUser("movingline3");
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         String location = response.getHeaders().getLocation().getPath();
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -44,7 +44,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
-                        "javajigi2", "javajigi2@slipp.net");
+                        "movingline31", "movingline31@gmail.com");
 
         ResponseEntity<User> responseEntity =
                 basicAuthTemplate(newUser).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), User.class);
@@ -55,7 +55,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_no_login() throws Exception {
-        User newUser = newUser("testuser4");
+        User newUser = newUser("movingline4");
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         String location = response.getHeaders().getLocation().getPath();
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -63,7 +63,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
-                        "javajigi2", "javajigi2@slipp.net");
+                        "movingline41", "movingline41@gmail.com");
 
         ResponseEntity<String> responseEntity =
                 template().exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), String.class);
@@ -74,12 +74,12 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_다른_사람() throws Exception {
-        User newUser = newUser("testuser5");
+        User newUser = newUser("movingline5");
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
 
-        User updateUser = new User(newUser.getUserId(), "password", "name2", "javajigi@slipp.net2");
+        User updateUser = new User(newUser.getUserId(), "password", "name51", "movingline51@gmail.com");
 
         ResponseEntity<Void> responseEntity =
                 basicAuthTemplate(defaultUser()).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), Void.class);
