@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Optional;
@@ -58,6 +55,16 @@ public class QuestionController {
                     .orElseThrow(UnAuthorizedException::new));
             return "/qna/updateForm";
         } catch (UnAuthorizedException e) {
+            return String.format("redirect:/questions/%d", id);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public String update(@LoginUser User loginUser, @PathVariable Long id, Question updateQuestion) {
+        try {
+            qnaService.update(loginUser, id, updateQuestion);
+        } catch (UnAuthorizedException e) {
+        } finally {
             return String.format("redirect:/questions/%d", id);
         }
     }

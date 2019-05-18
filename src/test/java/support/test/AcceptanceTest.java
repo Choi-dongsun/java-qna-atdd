@@ -13,6 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public abstract class AcceptanceTest extends BaseTest {
     private static final String DEFAULT_LOGIN_USER = "movingline";
+    public static final int NON_EXIST_ID = 999;
 
     @Autowired
     private TestRestTemplate template;

@@ -1,5 +1,6 @@
 package codesquad.domain;
 
+import codesquad.exception.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -38,6 +39,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
+    public Question(long id, User writer, String title, String contents) {
+        super(id);
+        this.writer = writer;
+        this.title = title;
+        this.contents = contents;
+     }
+
     public String getTitle() {
         return title;
     }
@@ -75,6 +83,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public Question update(User loginUser, Question updateQuestion) throws UnAuthorizedException {
+        if(!isOwner(loginUser)) throw new UnAuthorizedException();
+        title = updateQuestion.title;
+        contents = updateQuestion.contents;
+
+        return this;
     }
 
     @Override

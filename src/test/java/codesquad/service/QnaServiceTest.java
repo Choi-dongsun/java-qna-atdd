@@ -2,21 +2,26 @@ package codesquad.service;
 
 import codesquad.domain.Question;
 import codesquad.domain.QuestionRepository;
-import codesquad.domain.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import support.test.BaseTest;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
 
+import static codesquad.domain.QuestionTest.*;
+import static codesquad.domain.UserTest.MOVINGLINE;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QnaServiceTest extends BaseTest {
+    private static final Logger log = LoggerFactory.getLogger(QnaServiceTest.class);
+
     @Mock
     private QuestionRepository questionRepository;
 
@@ -25,30 +30,28 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void create() throws Exception {
-        Question createQuestion = new Question("생성글", "생성글의 내용");
-        User loginUser = new User("movingline", "123456", "name", "movingline@gmail.com");
-        createQuestion.writeBy(loginUser);
-
-        when(questionRepository.save(createQuestion)).thenReturn(createQuestion);
-
-        softly.assertThat(qnaService.create(loginUser, createQuestion)).isEqualTo(createQuestion);
+        when(questionRepository.save(Q1)).thenReturn(Q1);
+        softly.assertThat(qnaService.create(MOVINGLINE, Q1)).isEqualTo(Q1);
     }
 
     @Test
     public void findById() {
-        Question question = new Question("생성글", "생성글의 내용");
-        question.setId(1);
-
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
-        softly.assertThat(qnaService.findById(question.getId())).isEqualTo(question);
+        when(questionRepository.findById(Q1.getId())).thenReturn(Optional.of(Q1));
+        softly.assertThat(qnaService.findById(Q1.getId())).isEqualTo(Q1);
     }
 
     @Test(expected = EntityNotFoundException.class)
     public void findById_when_question_not_found() {
-        Question question = new Question("생성글", "생성글의 내용");
-        question.setId(1);
+        when(questionRepository.findById(Q1.getId())).thenReturn(Optional.empty());
+        qnaService.findById(Q1.getId());
+    }
 
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.empty());
-        qnaService.findById(question.getId());
+    @Test
+    public void update() {
+        Question origin = newQuestion(1L, MOVINGLINE);
+        when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
+
+        softly.assertThat(qnaService.update(MOVINGLINE, origin.getId(), Q_UPDATE).getTitle()).isEqualTo(Q_UPDATE.getTitle());
+        softly.assertThat(qnaService.update(MOVINGLINE, origin.getId(), Q_UPDATE).getContents()).isEqualTo(Q_UPDATE.getContents());
     }
 }

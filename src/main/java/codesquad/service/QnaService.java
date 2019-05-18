@@ -38,9 +38,9 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+    public Question update(User loginUser, long id, Question updatedQuestion) throws RuntimeException {
+        Question original = findById(id);
+        return original.update(loginUser, updatedQuestion);
     }
 
     @Transactional
