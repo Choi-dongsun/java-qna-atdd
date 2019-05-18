@@ -2,6 +2,7 @@ package codesquad.service;
 
 import codesquad.exception.CannotDeleteException;
 import codesquad.domain.*;
+import codesquad.exception.UnAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +33,7 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Question findById(long id) {
+    public Question findById(long id) throws EntityNotFoundException{
         return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 

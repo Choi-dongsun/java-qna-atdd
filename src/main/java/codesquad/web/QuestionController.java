@@ -2,6 +2,7 @@ package codesquad.web;
 
 import codesquad.domain.Question;
 import codesquad.domain.User;
+import codesquad.exception.UnAuthorizedException;
 import codesquad.security.LoginUser;
 import codesquad.service.QnaService;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.Resource;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/questions")
@@ -43,9 +45,20 @@ public class QuestionController {
 
     @GetMapping("/{id}")
     public String show(@PathVariable Long id, Model model) {
-        Question question = qnaService.findById(id);
-        model.addAttribute(question);
+        model.addAttribute(qnaService.findById(id));
 
         return "/qna/show";
+    }
+
+    @GetMapping("/{id}/form")
+    public String updateForm(@LoginUser User loginUser, @PathVariable Long id, Model model) {
+        try {
+            model.addAttribute("question", Optional.of(qnaService.findById(id))
+                    .filter(q -> q.isOwner(loginUser))
+                    .orElseThrow(UnAuthorizedException::new));
+            return "/qna/updateForm";
+        } catch (UnAuthorizedException e) {
+            return String.format("redirect:/questions/%d", id);
+        }
     }
 }

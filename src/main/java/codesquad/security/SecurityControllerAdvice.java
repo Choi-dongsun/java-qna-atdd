@@ -18,7 +18,7 @@ public class SecurityControllerAdvice {
 
     @ExceptionHandler(EntityNotFoundException.class)
 //    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public String emptyResultData(EntityNotFoundException e) {
+    public String emptyResultData() {
         log.debug("EntityNotFoundException is happened!");
 
         return "redirect:/";

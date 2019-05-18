@@ -13,6 +13,8 @@ import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 import support.test.HtmlFormDataBuilder;
 
+import static codesquad.domain.UserTest.ZINGOWORKS;
+
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
 
@@ -70,9 +72,46 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void show_not_exist_question() {
+    public void show_when_question_not_found() {
         ResponseEntity<String> response =
                 template().getForEntity(String.format("/questions/%d", 0), String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    }
+
+    @Test
+    public void updateForm() {
+        ResponseEntity<String> response =
+                basicAuthTemplate().getForEntity(String.format("/questions/%d/form", 1), String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getBody().contains("질문1의 내용")).isTrue();
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void updateForm_no_login() {
+        ResponseEntity<String> response =
+                template().getForEntity(String.format("/questions/%d/form", 1), String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        softly.assertThat(response.getBody().contains("사용자 아이디")).isTrue();
+        softly.assertThat(response.getBody().contains("비밀번호")).isTrue();
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void updateForm_when_other_user_access() {
+        ResponseEntity<String> response =
+                basicAuthTemplate(ZINGOWORKS).getForEntity(String.format("/questions/%d/form", 1), String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    }
+
+    @Test
+    public void updateForm_when_question_not_found() {
+        ResponseEntity<String> response =
+                basicAuthTemplate().getForEntity(String.format("/questions/%d/form", 0), String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     }
