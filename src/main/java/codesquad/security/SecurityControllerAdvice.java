@@ -17,9 +17,11 @@ public class SecurityControllerAdvice {
     private static final Logger log = LoggerFactory.getLogger(SecurityControllerAdvice.class);
 
     @ExceptionHandler(EntityNotFoundException.class)
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public void emptyResultData() {
+//    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public String emptyResultData(EntityNotFoundException e) {
         log.debug("EntityNotFoundException is happened!");
+
+        return "redirect:/";
     }
 
     @ExceptionHandler(UnAuthorizedException.class)

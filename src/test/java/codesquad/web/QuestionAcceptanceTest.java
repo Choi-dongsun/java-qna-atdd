@@ -59,4 +59,21 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = template().getForEntity("/questions", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     }
+
+    @Test
+    public void show() {
+        ResponseEntity<String> response =
+                template().getForEntity(String.format("/questions/%d", 1), String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void show_not_exist_question() {
+        ResponseEntity<String> response =
+                template().getForEntity(String.format("/questions/%d", 0), String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    }
 }
