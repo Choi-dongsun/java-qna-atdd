@@ -33,4 +33,9 @@ public class QuestionController {
 
         return "redirect:/";
     }
+
+    @GetMapping("")
+    public String list() {
+        return "redirect:/";
+    }
 }

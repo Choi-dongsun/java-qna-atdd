@@ -53,4 +53,10 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         return template.postForEntity("/questions", request, String.class);
     }
+
+    @Test
+    public void list() {
+        ResponseEntity<String> response = template().getForEntity("/questions", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    }
 }
