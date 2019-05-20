@@ -1,6 +1,6 @@
 package codesquad.web;
 
-import codesquad.UnAuthenticationException;
+import codesquad.exception.UnAuthenticationException;
 import codesquad.domain.User;
 import codesquad.security.HttpSessionUtils;
 import codesquad.security.LoginUser;
@@ -36,7 +36,7 @@ public class UserController {
 
     @GetMapping("/login")
     public String loginForm() {
-        return "/user/form";
+        return "/user/login";
     }
 
     @PostMapping("/login")
