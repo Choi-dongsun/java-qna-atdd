@@ -156,4 +156,68 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = update(basicAuthTemplate(ZINGOWORKS), NON_EXIST_ID);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     }
+
+    private ResponseEntity<String> delete(TestRestTemplate template, long questionId) {
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .delete().build();
+
+        return template.postForEntity(String.format("/questions/%d", questionId), request, String.class);
+    }
+
+    @Test
+    public void delete() { // 댓글 없는 자신의 글 삭제
+        ResponseEntity<String> response = delete(basicAuthTemplate(), Q5.getId());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
+    }
+
+    @Test
+    public void delete_no_login() {
+        ResponseEntity<String> response = delete(template(), Q5.getId());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void delete_when_other_user_access() {
+        ResponseEntity<String> response = delete(basicAuthTemplate(ZINGOWORKS), Q5.getId());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath())
+                .isEqualTo(String.format("/questions/%d", Q5.getId()));
+    }
+
+    @Test // 자신의 삭제되지 않은 댓글만 존재 -> 삭제 O
+    public void delete_when_only_own_answer_found() {
+        ResponseEntity<String> response = delete(basicAuthTemplate(MOVINGLINE), Q6.getId());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
+    }
+
+    @Test // 자신의 삭제된 댓글만 존재 -> 삭제 O
+    public void delete_when_only_own_deleted_answer_found() {
+        ResponseEntity<String> response = delete(basicAuthTemplate(ZINGOWORKS), Q4.getId());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
+    }
+
+    @Test // 타인의 삭제되지않은 댓글만 존재 -> 에러
+    public void delete_when_only_other_answer_found() {
+        ResponseEntity<String> response = delete(basicAuthTemplate(), Q7.getId());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath())
+                .isEqualTo(String.format("/questions/%d", Q7.getId()));
+    }
+
+    @Test // 타인의 삭제된 댓글만 존재 -> 삭제 O
+    public void delete_when_only_other_deleted_answer_found() {
+        ResponseEntity<String> response = delete(basicAuthTemplate(), Q8.getId());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
+    }
+
+    @Test // 자신의 댓글과 타인의 삭제된 댓글만 존재 - > 삭제 O
+    public void delete_when_own_answer_and_other_deleted_answer_found() {
+        ResponseEntity<String> response = delete(basicAuthTemplate(), Q9.getId());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
+    }
 }

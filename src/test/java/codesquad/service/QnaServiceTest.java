@@ -1,7 +1,10 @@
 package codesquad.service;
 
+import codesquad.domain.Answer;
 import codesquad.domain.Question;
 import codesquad.domain.QuestionRepository;
+import codesquad.exception.CannotDeleteException;
+import codesquad.exception.UnAuthorizedException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -16,6 +19,7 @@ import java.util.Optional;
 
 import static codesquad.domain.QuestionTest.*;
 import static codesquad.domain.UserTest.MOVINGLINE;
+import static codesquad.domain.UserTest.ZINGOWORKS;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -53,5 +57,40 @@ public class QnaServiceTest extends BaseTest {
 
         softly.assertThat(qnaService.update(MOVINGLINE, origin.getId(), Q_UPDATE).getTitle()).isEqualTo(Q_UPDATE.getTitle());
         softly.assertThat(qnaService.update(MOVINGLINE, origin.getId(), Q_UPDATE).getContents()).isEqualTo(Q_UPDATE.getContents());
+    }
+
+    @Test
+    public void delete() throws Exception {
+        Question origin = newQuestion(1L, MOVINGLINE);
+        when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
+
+        softly.assertThat(qnaService.deleteQuestion(MOVINGLINE, origin.getId())).isEqualTo(origin);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void delete_when_question_not_found() throws Exception {
+        Question origin = newQuestion(1L, MOVINGLINE);
+        when(questionRepository.findById(origin.getId())).thenReturn(Optional.empty());
+
+        softly.assertThat(qnaService.deleteQuestion(MOVINGLINE, origin.getId())).isEqualTo(origin);
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_when_other_user_access() throws Exception {
+        Question origin = newQuestion(1L, MOVINGLINE);
+        when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
+
+        softly.assertThat(qnaService.deleteQuestion(ZINGOWORKS, origin.getId())).isEqualTo(origin);
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_when_other_user_answer_found() throws Exception {
+        Question origin = newQuestion(1L, MOVINGLINE);
+        Answer answer = new Answer(1L, ZINGOWORKS, origin, "답변");
+        origin.addAnswer(answer);
+
+        when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
+
+        softly.assertThat(qnaService.deleteQuestion(MOVINGLINE, origin.getId())).isEqualTo(origin);
     }
 }
