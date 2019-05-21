@@ -20,8 +20,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() {
-        Question newQuestion = new Question("생성질문", "생성질문의 답변");
-        ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", newQuestion, Void.class);
+        ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", Q_NEW, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
 
@@ -31,8 +30,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create_no_login() {
-        Question newQuestion = new Question("생성질문", "생성질문의 내용");
-        ResponseEntity<Void> response = template().postForEntity("/api/questions/", newQuestion, Void.class);
+        ResponseEntity<Void> response = template().postForEntity("/api/questions/", Q_NEW, Void.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
@@ -83,6 +81,53 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         String location = String.format("/api/questions/%d", Q1.getId());
         ResponseEntity<Question> responseEntity = basicAuthTemplate(ZINGOWORKS)
                 .exchange(location, HttpMethod.PUT, createHttpEntity(Q_UPDATE), Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test // delete관련 test는 변경 가능성있는 fixture를 배제하고 진행해본다.
+    public void delete() {
+        Question newQuestion = new Question("생성질문", "생성질문의 내용");
+        String location = createResource("/api/questions", newQuestion);
+        ResponseEntity<Question> responseEntity = basicAuthTemplate()
+                .exchange(location, HttpMethod.DELETE, HttpEntity.EMPTY, Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(responseEntity.getBody().isDeleted()).isTrue();
+    }
+
+    @Test
+    public void delete_no_login() {
+        String location = createResource("/api/questions", Q_NEW);
+        ResponseEntity<Question> responseEntity = template()
+                .exchange(location, HttpMethod.DELETE, HttpEntity.EMPTY, Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void delete_when_other_user_access() {
+        String location = createResource("/api/questions", Q_NEW);
+        ResponseEntity<Question> responseEntity = basicAuthTemplate(ZINGOWORKS)
+                .exchange(location, HttpMethod.DELETE, HttpEntity.EMPTY, Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    public void delete_when_question_not_found() {
+        String location = String.format("/api/questions/%d", NON_EXIST_ID);
+        ResponseEntity<Question> responseEntity = basicAuthTemplate(ZINGOWORKS)
+                .exchange(location, HttpMethod.DELETE, HttpEntity.EMPTY, Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void delete_when_other_user_answer_found() {
+        String location = createResource("/api/questions", Q_NEW);
+        ResponseEntity<Question> responseEntity = basicAuthTemplate(ZINGOWORKS)
+                .exchange(location, HttpMethod.DELETE, HttpEntity.EMPTY, Question.class);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }

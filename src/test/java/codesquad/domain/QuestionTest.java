@@ -19,6 +19,7 @@ public class QuestionTest extends BaseTest {
     public static final Question Q8 = new Question.Builder(8L , MOVINGLINE, "질문8", "질문8의 내용").build();
     public static final Question Q9 = new Question.Builder(9L , MOVINGLINE, "질문9", "질문9의 내용").build();
 
+    public static final Question Q_NEW = new Question("질문생성", "질문의 내용");
     public static final Question Q_UPDATE = new Question("질문수정", "질문의 내용수정");
 
     public static Question newQuestion(Long id, User user) {
