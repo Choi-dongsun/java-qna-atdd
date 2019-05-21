@@ -2,8 +2,6 @@ package codesquad.web;
 
 import codesquad.domain.Question;
 import codesquad.domain.User;
-import codesquad.exception.CannotDeleteException;
-import codesquad.exception.UnAuthorizedException;
 import codesquad.security.LoginUser;
 import codesquad.service.QnaService;
 import org.slf4j.Logger;
@@ -13,14 +11,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/questions")
 public class QuestionController {
     private static final Logger log = LoggerFactory.getLogger(QuestionController.class);
 
-    @Resource(name="qnaService")
+    @Resource(name = "qnaService")
     private QnaService qnaService;
 
     @GetMapping("/form")
@@ -29,10 +26,8 @@ public class QuestionController {
     }
 
     @PostMapping("")
-    public String create(@LoginUser User user, String title, String contents) {
-        Question question = new Question(title, contents);
-        qnaService.create(user, question);
-
+    public String create(@LoginUser User loginUser, String title, String contents) {
+        qnaService.create(loginUser, title, contents);
         return "redirect:/";
     }
 
@@ -44,39 +39,25 @@ public class QuestionController {
     @GetMapping("/{id}")
     public String show(@PathVariable Long id, Model model) {
         model.addAttribute(qnaService.findById(id));
-
         return "/qna/show";
     }
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable Long id, Model model) {
-        try {
-            model.addAttribute("question", Optional.of(qnaService.findById(id))
-                    .filter(q -> q.isOwner(loginUser))
-                    .orElseThrow(UnAuthorizedException::new));
-            return "/qna/updateForm";
-        } catch (UnAuthorizedException e) {
-            return String.format("redirect:/questions/%d", id);
-        }
+        Question question = qnaService.findByIdWithLoginUser(loginUser, id);
+        model.addAttribute("question", question);
+        return "/qna/updateForm";
     }
 
     @PutMapping("/{id}")
-    public String update(@LoginUser User loginUser, @PathVariable Long id, Question updateQuestion) {
-        try {
-            qnaService.update(loginUser, id, updateQuestion);
-        } catch (UnAuthorizedException e) {
-        } finally {
-            return String.format("redirect:/questions/%d", id);
-        }
+    public String update(@LoginUser User loginUser, @PathVariable Long id, String title, String contents) {
+        qnaService.update(loginUser, id, title, contents);
+        return String.format("redirect:/questions/%d", id);
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@LoginUser User loginUser, @PathVariable Long id) {
-        try {
-            qnaService.deleteQuestion(loginUser, id);
-            return "redirect:/";
-        } catch (Exception e) {
-            return String.format("redirect:/questions/%d", id);
-        }
+    public String delete(@LoginUser User loginUser, @PathVariable Long id) throws Exception {
+        qnaService.deleteQuestion(loginUser, id);
+        return "redirect:/";
     }
 }

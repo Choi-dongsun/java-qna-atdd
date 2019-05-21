@@ -1,6 +1,5 @@
 package codesquad.service;
 
-import codesquad.exception.CannotDeleteException;
 import codesquad.domain.*;
 import codesquad.exception.UnAuthorizedException;
 import org.slf4j.Logger;
@@ -27,9 +26,9 @@ public class QnaService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
-    public Question create(User loginUser, Question question) {
+    public Question create(User loginUser, String title, String contents) {
+        Question question = new Question(title, contents);
         question.writeBy(loginUser);
-        log.debug("question : {}", question);
         return questionRepository.save(question);
     }
 
@@ -37,18 +36,22 @@ public class QnaService {
         return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
+    public Question findByIdWithLoginUser(User loginUser, long id) throws UnAuthorizedException {
+        return Optional.of(findById(id))
+                .filter(i -> i.isOwner(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
+    }
+
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) throws RuntimeException {
+    public Question update(User loginUser, long id, String title, String contents) throws RuntimeException {
         Question original = findById(id);
-        return original.update(loginUser, updatedQuestion);
+        return original.update(loginUser, title, contents);
     }
 
     @Transactional
     public Question deleteQuestion(User loginUser, long id) throws Exception {
-        return Optional.of(findById(id))
-                .filter(i -> i.isOwner(loginUser))
-                .orElseThrow(UnAuthorizedException::new)
-                .delete();
+        Question original = findById(id);
+        return original.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {

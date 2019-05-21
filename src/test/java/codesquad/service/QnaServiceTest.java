@@ -20,6 +20,7 @@ import java.util.Optional;
 import static codesquad.domain.QuestionTest.*;
 import static codesquad.domain.UserTest.MOVINGLINE;
 import static codesquad.domain.UserTest.ZINGOWORKS;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -34,8 +35,8 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void create() throws Exception {
-        when(questionRepository.save(Q1)).thenReturn(Q1);
-        softly.assertThat(qnaService.create(MOVINGLINE, Q1)).isEqualTo(Q1);
+        when(questionRepository.save(any(Question.class))).thenReturn(Q1);
+        softly.assertThat(qnaService.create(MOVINGLINE, Q1.getTitle(), Q1.getContents())).isEqualTo(Q1);
     }
 
     @Test
@@ -51,12 +52,33 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test
+    public void findByIdWithLoginUser() {
+        when(questionRepository.findById(Q1.getId())).thenReturn(Optional.of(Q1));
+        softly.assertThat(qnaService.findByIdWithLoginUser(MOVINGLINE, Q1.getId())).isEqualTo(Q1);
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void findByIdWithLoginUser_when_other_user_access() {
+        when(questionRepository.findById(Q1.getId())).thenReturn(Optional.of(Q1));
+        qnaService.findByIdWithLoginUser(ZINGOWORKS, Q1.getId());
+    }
+
+    @Test
     public void update() {
         Question origin = newQuestion(1L, MOVINGLINE);
         when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
+        Question updated = qnaService.update(MOVINGLINE, origin.getId(), Q_UPDATE.getTitle(), Q_UPDATE.getContents());
 
-        softly.assertThat(qnaService.update(MOVINGLINE, origin.getId(), Q_UPDATE).getTitle()).isEqualTo(Q_UPDATE.getTitle());
-        softly.assertThat(qnaService.update(MOVINGLINE, origin.getId(), Q_UPDATE).getContents()).isEqualTo(Q_UPDATE.getContents());
+        softly.assertThat(updated.getTitle()).isEqualTo(Q_UPDATE.getTitle());
+        softly.assertThat(updated.getContents()).isEqualTo(Q_UPDATE.getContents());
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void update_when_other_user_access() {
+        Question origin = newQuestion(1L, MOVINGLINE);
+        when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
+
+        qnaService.update(ZINGOWORKS, origin.getId(), Q_UPDATE.getTitle(), Q_UPDATE.getContents());
     }
 
     @Test

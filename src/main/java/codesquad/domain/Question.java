@@ -4,6 +4,7 @@ import codesquad.exception.CannotDeleteException;
 import codesquad.exception.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
+import support.domain.Buildable;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
@@ -40,12 +41,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-    public Question(long id, User writer, String title, String contents) {
-        super(id);
-        this.writer = writer;
-        this.title = title;
-        this.contents = contents;
-     }
+    public Question(Builder builder) {
+        super(builder.id);
+        this.writer = builder.writer;
+        this.title = builder.title;
+        this.contents = builder.contents;
+    }
 
     public String getTitle() {
         return title;
@@ -86,15 +87,19 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public Question update(User loginUser, Question updateQuestion) throws UnAuthorizedException {
+    public Question update(User loginUser, String updateTitle, String updateContents) throws UnAuthorizedException {
         if(!isOwner(loginUser)) throw new UnAuthorizedException();
-        title = updateQuestion.title;
-        contents = updateQuestion.contents;
 
+        this.title = updateTitle;
+        this.contents = updateContents;
         return this;
     }
 
-    public Question delete() throws CannotDeleteException {
+    public Question delete(User loginUser) throws Exception {
+        if(!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
         for (Answer answer : answers) {
             if(!answer.isOwner(writer)) {
                 if(!answer.isDeleted()) {
@@ -105,6 +110,52 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.deleted = true;
 
         return this;
+    }
+
+    public static class Builder implements Buildable {
+        private long id;
+        private String title;
+        private String contents;
+        private User writer;
+        private List<Answer> answers = new ArrayList<>();
+        private boolean deleted = false;
+
+        public Builder(long id, User writer, String title, String contents) {
+            this.id = id;
+            this.writer = writer;
+            this.title = title;
+            this.contents = contents;
+        }
+
+        public Builder title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public Builder contents(String contents) {
+            this.contents = contents;
+            return this;
+        }
+
+        public Builder writer(User writer) {
+            this.writer = writer;
+            return this;
+        }
+
+        public Buildable answers(List<Answer> answers) {
+            this.answers = answers;
+            return this;
+        }
+
+        public Builder contents(boolean deleted) {
+            this.deleted = deleted;
+            return this;
+        }
+
+        @Override
+        public Question build() {
+            return new Question(this);
+        }
     }
 
     @Override
