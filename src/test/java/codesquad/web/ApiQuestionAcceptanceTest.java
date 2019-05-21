@@ -6,11 +6,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
-import static codesquad.domain.QuestionTest.Q1;
+import static codesquad.domain.QuestionTest.*;
+import static codesquad.domain.UserTest.ZINGOWORKS;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
@@ -31,7 +31,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create_no_login() {
-        Question newQuestion = new Question("생성질문", "생성질문의 답변");
+        Question newQuestion = new Question("생성질문", "생성질문의 내용");
         ResponseEntity<Void> response = template().postForEntity("/api/questions/", newQuestion, Void.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -39,8 +39,8 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void show() {
-        ResponseEntity<Void> response = template()
-                .getForEntity(String.format("/api/questions/%d", Q1.getId()), Void.class);
+        ResponseEntity<Question> response = template()
+                .getForEntity(String.format("/api/questions/%d", Q1.getId()), Question.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -51,5 +51,45 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
                 .getForEntity(String.format("/api/questions/%d", NON_EXIST_ID), Question.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void update() {
+//        Question newQuestion = new Question("생성질문", "생성질문의 내용");
+//        String location = createResource("/api/questions", newQuestion);
+//        -> 새로운 자원 생성(fixture 의존 회피)
+//        Question origin = getResource(location, Question.class, defaultUser());
+//        -> 해당 자원 조회
+        String location = String.format("/api/questions/%d", Q5.getId());
+        ResponseEntity<Question> responseEntity = basicAuthTemplate()
+                .exchange(location, HttpMethod.PUT, createHttpEntity(Q_UPDATE), Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(responseEntity.getBody().getTitle()).isEqualTo(Q_UPDATE.getTitle());
+        softly.assertThat(responseEntity.getBody().getContents()).isEqualTo(Q_UPDATE.getContents());
+    }
+
+    @Test
+    public void update_when_question_not_found() {
+        String location = String.format("/api/questions/%d", NON_EXIST_ID);
+        ResponseEntity<Question> responseEntity = basicAuthTemplate()
+                .exchange(location, HttpMethod.PUT, createHttpEntity(Q_UPDATE), Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void update_when_other_user_access() {
+        String location = String.format("/api/questions/%d", Q1.getId());
+        ResponseEntity<Question> responseEntity = basicAuthTemplate(ZINGOWORKS)
+                .exchange(location, HttpMethod.PUT, createHttpEntity(Q_UPDATE), Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    private HttpEntity createHttpEntity(Object body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity(body, headers);
     }
 }

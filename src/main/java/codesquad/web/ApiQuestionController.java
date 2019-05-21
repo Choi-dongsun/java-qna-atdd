@@ -32,4 +32,11 @@ public class ApiQuestionController {
     public  ResponseEntity<Question> show(@PathVariable Long id) {
         return new ResponseEntity<>(qnaService.findById(id), HttpStatus.OK);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Question> update
+            (@LoginUser User login, @PathVariable Long id, @Valid @RequestBody Question updateQuestion) {
+        return new ResponseEntity<>
+                (qnaService.update(login, id, updateQuestion.getTitle(), updateQuestion.getContents()), HttpStatus.OK);
+    }
 }
