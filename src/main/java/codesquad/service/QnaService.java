@@ -36,6 +36,10 @@ public class QnaService {
         return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
+    public Question findByIdAndNotDeleted(long id) {
+        return Optional.of(findById(id)).filter(i -> !i.isDeleted()).orElseThrow(IllegalStateException::new);
+    }
+
     public Question findByIdWithLoginUser(User loginUser, long id) throws UnAuthorizedException {
         return Optional.of(findById(id))
                 .filter(i -> i.isOwner(loginUser))
@@ -63,8 +67,10 @@ public class QnaService {
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Answer answer = new Answer(loginUser, contents);
+//        answer.toQuestion(findById(questionId));
+        answer.toQuestion(findByIdAndNotDeleted(questionId));
+        return answerRepository.save(answer);
     }
 
     public Answer deleteAnswer(User loginUser, long id) {

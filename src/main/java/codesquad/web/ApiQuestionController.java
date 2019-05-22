@@ -4,6 +4,8 @@ import codesquad.domain.Question;
 import codesquad.domain.User;
 import codesquad.security.LoginUser;
 import codesquad.service.QnaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,8 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/questions")
 public class ApiQuestionController {
+    private static final Logger log = LoggerFactory.getLogger(ApiQuestionController.class);
+
     @Autowired
     QnaService qnaService;
 

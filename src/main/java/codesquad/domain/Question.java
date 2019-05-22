@@ -46,6 +46,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = builder.writer;
         this.title = builder.title;
         this.contents = builder.contents;
+        this.deleted = builder.deleted;
     }
 
     public String getTitle() {
@@ -147,7 +148,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             return this;
         }
 
-        public Builder contents(boolean deleted) {
+        public Builder deleted(boolean deleted) {
             this.deleted = deleted;
             return this;
         }

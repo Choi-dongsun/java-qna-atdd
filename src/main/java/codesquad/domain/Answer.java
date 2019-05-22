@@ -38,6 +38,11 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.deleted = false;
     }
 
+    public Answer(Long id, User writer, Question question, String contents, boolean delete) {
+        this(id, writer, question, contents);
+        this.deleted = delete;
+    }
+
     public User getWriter() {
         return writer;
     }

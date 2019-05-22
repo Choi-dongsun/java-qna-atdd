@@ -1,6 +1,7 @@
 package codesquad.service;
 
 import codesquad.domain.Answer;
+import codesquad.domain.AnswerRepository;
 import codesquad.domain.Question;
 import codesquad.domain.QuestionRepository;
 import codesquad.exception.CannotDeleteException;
@@ -17,6 +18,7 @@ import support.test.BaseTest;
 import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
 
+import static codesquad.domain.AnswerTest.A1;
 import static codesquad.domain.QuestionTest.*;
 import static codesquad.domain.UserTest.MOVINGLINE;
 import static codesquad.domain.UserTest.ZINGOWORKS;
@@ -29,6 +31,9 @@ public class QnaServiceTest extends BaseTest {
 
     @Mock
     private QuestionRepository questionRepository;
+
+    @Mock
+    private AnswerRepository answerRepository;
 
     @InjectMocks
     private QnaService qnaService;
@@ -114,5 +119,27 @@ public class QnaServiceTest extends BaseTest {
         when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
 
         softly.assertThat(qnaService.deleteQuestion(MOVINGLINE, origin.getId())).isEqualTo(origin);
+    }
+
+    @Test
+    public void addAnswer() {
+        when(answerRepository.save(any(Answer.class))).thenReturn(A1);
+        when(questionRepository.findById(Q1.getId())).thenReturn(Optional.of(Q1));
+
+        softly.assertThat(qnaService.addAnswer(MOVINGLINE, Q1.getId(), A1.getContents())).isEqualTo(A1);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void addAnswer_when_question_not_found() {
+        when(questionRepository.findById(Q1.getId())).thenReturn(Optional.empty());
+
+        qnaService.addAnswer(MOVINGLINE, Q1.getId(), A1.getContents());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void addAnswer_when_question_deleted() {
+        when(questionRepository.findById(Q3.getId())).thenReturn(Optional.of(Q3));
+
+        qnaService.addAnswer(MOVINGLINE, Q3.getId(), A1.getContents());
     }
 }

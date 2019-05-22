@@ -17,6 +17,12 @@ import javax.persistence.EntityNotFoundException;
 public class SecurityControllerAdvice {
     private static final Logger log = LoggerFactory.getLogger(SecurityControllerAdvice.class);
 
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public void accessDeletedEntity() {
+        log.debug("IllegalStateException is happened!");
+    }
+
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public void emptyResultData() {

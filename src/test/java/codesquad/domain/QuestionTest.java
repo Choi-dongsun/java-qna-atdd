@@ -11,13 +11,14 @@ import static codesquad.domain.UserTest.ZINGOWORKS;
 public class QuestionTest extends BaseTest {
     public static final Question Q1 = new Question.Builder(1L, MOVINGLINE, "질문1", "질문1의 내용").build();
     public static final Question Q2 = new Question.Builder(2L, ZINGOWORKS, "질문2", "질문2의 내용").build();
-    public static final Question Q3 = new Question.Builder(3L, MOVINGLINE, "삭제된 질문3", "질문3의 내용").build();
+    public static final Question Q3 = new Question.Builder(3L, MOVINGLINE, "삭제된 질문3", "질문3의 내용").deleted(true).build();
     public static final Question Q4 = new Question.Builder(4L , ZINGOWORKS, "질문4", "질문4의 내용").build();
     public static final Question Q5 = new Question.Builder(5L , MOVINGLINE, "질문5", "질문5의 내용").build();
     public static final Question Q6 = new Question.Builder(6L , MOVINGLINE, "질문6", "질문6의 내용").build();
     public static final Question Q7 = new Question.Builder(7L , MOVINGLINE, "질문7", "질문7의 내용").build();
     public static final Question Q8 = new Question.Builder(8L , MOVINGLINE, "질문8", "질문8의 내용").build();
     public static final Question Q9 = new Question.Builder(9L , MOVINGLINE, "질문9", "질문9의 내용").build();
+    public static final Question Q10 = new Question.Builder(10L , MOVINGLINE, "질문10", "질문10의 내용").build();
 
     public static final Question Q_NEW = new Question("질문생성", "질문의 내용");
     public static final Question Q_UPDATE = new Question("질문수정", "질문의 내용수정");
