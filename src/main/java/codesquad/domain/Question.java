@@ -10,6 +10,7 @@ import support.domain.UrlGeneratable;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @Entity
@@ -75,9 +76,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = loginUser;
     }
 
-    public void addAnswer(Answer answer) {
+    public Question addAnswer(Answer answer) {
         answer.toQuestion(this);
         answers.add(answer);
+
+        return this;
     }
 
     public boolean isOwner(User loginUser) {
@@ -96,21 +99,22 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public Question delete(User loginUser) throws Exception {
-        if(!isOwner(loginUser)) {
-            throw new UnAuthorizedException();
-        }
+    public List<DeleteHistory> delete(User loginUser) throws RuntimeException {
+        if(!isOwner(loginUser)) throw new UnAuthorizedException();
+        if(isDeleted()) throw new IllegalStateException();
 
-        for (Answer answer : answers) {
-            if(!answer.isOwner(writer)) {
-                if(!answer.isDeleted()) {
-                    throw new CannotDeleteException("CannotDeleteException is happened!");
-                }
-            }
-        }
+        return processDeletion();
+    }
+
+    public List<DeleteHistory> processDeletion() {
+        DeleteHistory deletedQuestion = new DeleteHistory(ContentType.QUESTION, getId(), writer);
         this.deleted = true;
+        List<DeleteHistory> deletedAnswers = Answer.deleteAll(answers, writer);
 
-        return this;
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+        deleteHistories.add(deletedQuestion);
+        deleteHistories.addAll(deletedAnswers);
+        return deleteHistories;
     }
 
     public static class Builder implements Buildable {

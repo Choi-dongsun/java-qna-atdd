@@ -1,11 +1,14 @@
 package codesquad.domain;
 
+import codesquad.exception.CannotDeleteException;
 import codesquad.exception.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -62,6 +65,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     }
 
     public void toQuestion(Question question) {
+        if (question.isDeleted()) throw new IllegalStateException();
         this.question = question;
     }
 
@@ -73,13 +77,25 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public Answer delete(User loginUser) {
-        if(!isOwner(loginUser)) {
-            throw new UnAuthorizedException();
-        }
+    public DeleteHistory delete(User loginUser) throws RuntimeException {
+        if (!isOwner(loginUser)) throw new UnAuthorizedException();
+        if (question.isDeleted() || isDeleted()) throw new IllegalStateException();
 
         this.deleted = true;
-        return this;
+
+        return new DeleteHistory(ContentType.ANSWER, getId(), loginUser);
+    }
+
+    public static List<DeleteHistory> deleteAll(List<Answer> answers, User writer) throws CannotDeleteException {
+        List<DeleteHistory> deletedAnswers = new ArrayList<>();
+
+        for (Answer answer : answers) {
+            if(!answer.isOwner(writer)) if(!answer.isDeleted()) throw new CannotDeleteException();
+            answer.deleted = true;
+            deletedAnswers.add(new DeleteHistory(ContentType.ANSWER, answer.getId(), answer.writer));
+        }
+
+        return deletedAnswers;
     }
 
     @Override

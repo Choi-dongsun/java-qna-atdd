@@ -40,14 +40,6 @@ public class QnaService {
         return answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
-    public Question findByQuestionIdAndNotDeleted(long id) {
-        return Optional.of(findByQuestionId(id)).filter(i -> !i.isDeleted()).orElseThrow(IllegalStateException::new);
-    }
-
-    public Answer findByAnswerIdAndNotDeleted(long id) {
-        return Optional.of(findByAnswerId(id)).filter(i -> !i.isDeleted()).orElseThrow(IllegalStateException::new);
-    }
-
     public Question findByIdWithLoginUser(User loginUser, long id) throws UnAuthorizedException {
         return Optional.of(findByQuestionId(id))
                 .filter(i -> i.isOwner(loginUser))
@@ -61,9 +53,10 @@ public class QnaService {
     }
 
     @Transactional
-    public Question deleteQuestion(User loginUser, long id) throws Exception {
+    public Question deleteQuestion(User loginUser, long id) {
         Question original = findByQuestionId(id);
-        return original.delete(loginUser);
+        deleteHistoryService.saveAll(original.delete(loginUser));
+        return original;
     }
 
     public Iterable<Question> findAll() {
@@ -74,16 +67,17 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Answer answer = new Answer(loginUser, contents);
-        answer.toQuestion(findByQuestionIdAndNotDeleted(questionId));
+        answer.toQuestion(findByQuestionId(questionId));
         return answerRepository.save(answer);
     }
 
-    public Answer deleteAnswer(User loginUser, long questionId, long id) {
-        Question question = findByQuestionIdAndNotDeleted(questionId);
-        log.debug("Question : {}", question);
-        Answer original = findByAnswerIdAndNotDeleted(id);
-        return original.delete(loginUser);
+    @Transactional
+    public Answer deleteAnswer(User loginUser, long id) {
+        Answer original = findByAnswerId(id);
+        deleteHistoryService.save(original.delete(loginUser));
+        return original;
     }
 }

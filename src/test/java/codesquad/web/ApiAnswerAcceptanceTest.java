@@ -79,7 +79,8 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         String locationA = createResource(String.format("/api/questions/%d/answers", questionId), A_NEW);
         softly.assertThat(locationA.startsWith(String.format("/api/questions/%d/answers/", questionId))).isTrue();
 
-        ResponseEntity<Answer> response = template().exchange(locationA, HttpMethod.DELETE, HttpEntity.EMPTY, Answer.class);
+        ResponseEntity<Answer> response = template()
+                .exchange(locationA, HttpMethod.DELETE, HttpEntity.EMPTY, Answer.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
@@ -91,14 +92,9 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         String locationA = createResource(String.format("/api/questions/%d/answers", questionId), A_NEW);
         softly.assertThat(locationA.startsWith(String.format("/api/questions/%d/answers/", questionId))).isTrue();
 
-        ResponseEntity<Answer> response = basicAuthTemplate(ZINGOWORKS).exchange(locationA, HttpMethod.DELETE, HttpEntity.EMPTY, Answer.class);
+        ResponseEntity<Answer> response = basicAuthTemplate(ZINGOWORKS)
+                .exchange(locationA, HttpMethod.DELETE, HttpEntity.EMPTY, Answer.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-    }
-
-    @Test
-    public void delete_when_question_not_found() {
-        ResponseEntity<Answer> response = basicAuthTemplate().exchange(String.format("/api/questions/%d/answers/%d", NON_EXIST_ID, A1.getId()), HttpMethod.DELETE, HttpEntity.EMPTY, Answer.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -106,7 +102,9 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         String locationQ = createResource("/api/questions", Q_NEW);
         Long questionId = Long.parseLong(locationQ.split("/")[3]);
 
-        ResponseEntity<Answer> response = basicAuthTemplate(ZINGOWORKS).exchange(String.format("/api/questions/%d/answers/%d", questionId, NON_EXIST_ID), HttpMethod.DELETE, HttpEntity.EMPTY, Answer.class);
+        ResponseEntity<Answer> response = basicAuthTemplate(ZINGOWORKS)
+                .exchange(String.format("/api/questions/%d/answers/%d", questionId, NON_EXIST_ID)
+                        , HttpMethod.DELETE, HttpEntity.EMPTY, Answer.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
@@ -135,7 +133,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void delete_when_answer_already_deleted() {
         ResponseEntity<Answer> response =
-                basicAuthTemplate().exchange(String.format("/api/questions/%d/answers/%d", Q4.getId(), A3.getId()),
+                basicAuthTemplate(ZINGOWORKS).exchange(String.format("/api/questions/%d/answers/%d", Q4.getId(), A3.getId()),
                         HttpMethod.DELETE, HttpEntity.EMPTY, Answer.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
