@@ -1,5 +1,6 @@
 package codesquad.security;
 
+import codesquad.exception.CannotDeleteException;
 import codesquad.exception.UnAuthenticationException;
 import codesquad.exception.UnAuthorizedException;
 import org.slf4j.Logger;
@@ -16,12 +17,16 @@ import javax.persistence.EntityNotFoundException;
 public class SecurityControllerAdvice {
     private static final Logger log = LoggerFactory.getLogger(SecurityControllerAdvice.class);
 
-    @ExceptionHandler(EntityNotFoundException.class)
-//    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public String emptyResultData() {
-        log.debug("EntityNotFoundException is happened!");
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public void accessDeletedEntity() {
+        log.debug("IllegalStateException is happened!");
+    }
 
-        return "redirect:/";
+    @ExceptionHandler(EntityNotFoundException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public void emptyResultData() {
+        log.debug("EntityNotFoundException is happened!");
     }
 
     @ExceptionHandler(UnAuthorizedException.class)
@@ -35,5 +40,11 @@ public class SecurityControllerAdvice {
     public String unAuthentication() {
         log.debug("UnAuthenticationException is happened!");
         return "/user/login";
+    }
+
+    @ExceptionHandler(CannotDeleteException.class)
+    @ResponseStatus(value = HttpStatus.FORBIDDEN)
+    public void cannotDelete() {
+        log.debug("CannotDeleteException is happened!");
     }
 }
