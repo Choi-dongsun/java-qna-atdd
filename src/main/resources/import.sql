@@ -11,6 +11,7 @@ INSERT INTO question (id, writer_id, title, contents, created_at, updated_at, de
 INSERT INTO question (id, writer_id, title, contents, created_at, updated_at, deleted) VALUES (8, 1, '질문8', '질문8의 내용', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), false);
 INSERT INTO question (id, writer_id, title, contents, created_at, updated_at, deleted) VALUES (9, 1, '질문9', '질문9의 내용', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), false);
 INSERT INTO question (id, writer_id, title, contents, created_at, updated_at, deleted) VALUES (10, 1, '질문10', '질문10의 내용', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), false);
+INSERT INTO question (id, writer_id, title, contents, created_at, updated_at, deleted) VALUES (11, 1, '삭제된 질문11', '질문11의 내용', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), true);
 
 INSERT INTO answer (writer_id, contents, created_at, question_id, deleted) VALUES (1, '질문1의 답변1', CURRENT_TIMESTAMP(), 1, false);
 INSERT INTO answer (writer_id, contents, created_at, question_id, deleted) VALUES (2, '질문2의 답변2', CURRENT_TIMESTAMP(), 2, false);
@@ -24,3 +25,5 @@ INSERT INTO answer (writer_id, contents, created_at, question_id, deleted) VALUE
 INSERT INTO answer (writer_id, contents, created_at, question_id, deleted) VALUES (1, '질문9의 답변8', CURRENT_TIMESTAMP(), 9, false);
 INSERT INTO answer (writer_id, contents, created_at, question_id, deleted) VALUES (1, '질문9의 삭제된 답변9', CURRENT_TIMESTAMP(), 9, true);
 INSERT INTO answer (writer_id, contents, created_at, question_id, deleted) VALUES (2, '질문9의 삭제된 답변10', CURRENT_TIMESTAMP(), 9, true);
+
+INSERT INTO answer (writer_id, contents, created_at, question_id, deleted) VALUES (1, '질문11의 답변11', CURRENT_TIMESTAMP(), 11, false);

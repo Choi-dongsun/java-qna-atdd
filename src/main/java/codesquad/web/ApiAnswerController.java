@@ -23,12 +23,17 @@ public class ApiAnswerController {
     @Autowired
     QnaService qnaService;
 
-    @PostMapping()
+    @PostMapping("")
     public ResponseEntity<Void> create(@PathVariable Long questionId, @LoginUser User loginUser, @Valid @RequestBody Answer answer) {
         Answer createAnswer = qnaService.addAnswer(loginUser, questionId, answer.getContents());
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create(String.format("/api/questions/%d/answers/%d", questionId, createAnswer.getId())));
 
         return new ResponseEntity<>(headers, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Answer> delete(@LoginUser User loginUser, @PathVariable Long questionId, @PathVariable Long id) {
+        return new ResponseEntity<>(qnaService.deleteAnswer(loginUser, questionId, id), HttpStatus.OK);
     }
 }

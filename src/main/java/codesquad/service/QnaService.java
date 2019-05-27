@@ -32,29 +32,37 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Question findById(long id) throws EntityNotFoundException{
+    public Question findByQuestionId(long id) throws EntityNotFoundException{
         return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
-    public Question findByIdAndNotDeleted(long id) {
-        return Optional.of(findById(id)).filter(i -> !i.isDeleted()).orElseThrow(IllegalStateException::new);
+    public Answer findByAnswerId(long id) throws EntityNotFoundException{
+        return answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+    }
+
+    public Question findByQuestionIdAndNotDeleted(long id) {
+        return Optional.of(findByQuestionId(id)).filter(i -> !i.isDeleted()).orElseThrow(IllegalStateException::new);
+    }
+
+    public Answer findByAnswerIdAndNotDeleted(long id) {
+        return Optional.of(findByAnswerId(id)).filter(i -> !i.isDeleted()).orElseThrow(IllegalStateException::new);
     }
 
     public Question findByIdWithLoginUser(User loginUser, long id) throws UnAuthorizedException {
-        return Optional.of(findById(id))
+        return Optional.of(findByQuestionId(id))
                 .filter(i -> i.isOwner(loginUser))
                 .orElseThrow(UnAuthorizedException::new);
     }
 
     @Transactional
     public Question update(User loginUser, long id, String title, String contents) throws RuntimeException {
-        Question original = findById(id);
+        Question original = findByQuestionId(id);
         return original.update(loginUser, title, contents);
     }
 
     @Transactional
     public Question deleteQuestion(User loginUser, long id) throws Exception {
-        Question original = findById(id);
+        Question original = findByQuestionId(id);
         return original.delete(loginUser);
     }
 
@@ -68,13 +76,14 @@ public class QnaService {
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Answer answer = new Answer(loginUser, contents);
-//        answer.toQuestion(findById(questionId));
-        answer.toQuestion(findByIdAndNotDeleted(questionId));
+        answer.toQuestion(findByQuestionIdAndNotDeleted(questionId));
         return answerRepository.save(answer);
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public Answer deleteAnswer(User loginUser, long questionId, long id) {
+        Question question = findByQuestionIdAndNotDeleted(questionId);
+        log.debug("Question : {}", question);
+        Answer original = findByAnswerIdAndNotDeleted(id);
+        return original.delete(loginUser);
     }
 }

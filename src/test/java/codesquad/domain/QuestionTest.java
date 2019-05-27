@@ -19,6 +19,7 @@ public class QuestionTest extends BaseTest {
     public static final Question Q8 = new Question.Builder(8L , MOVINGLINE, "질문8", "질문8의 내용").build();
     public static final Question Q9 = new Question.Builder(9L , MOVINGLINE, "질문9", "질문9의 내용").build();
     public static final Question Q10 = new Question.Builder(10L , MOVINGLINE, "질문10", "질문10의 내용").build();
+    public static final Question Q11 = new Question.Builder(11L , MOVINGLINE, "삭제된 질문11", "질문11의 내용").deleted(true).build();
 
     public static final Question Q_NEW = new Question("질문생성", "질문의 내용");
     public static final Question Q_UPDATE = new Question("질문수정", "질문의 내용수정");
@@ -62,7 +63,7 @@ public class QuestionTest extends BaseTest {
     public void delete_when_other_user_deleted_answer_found() throws Exception {
         Question origin = newQuestion(1L, MOVINGLINE);
         Answer answer = new Answer(1L, ZINGOWORKS, origin, "답변");
-        answer.delete();
+        answer.delete(ZINGOWORKS);
         origin.addAnswer(answer);
         origin.delete(MOVINGLINE);
 
@@ -84,7 +85,7 @@ public class QuestionTest extends BaseTest {
         Question origin = newQuestion(1L, MOVINGLINE);
         Answer answerOwn = new Answer(1L, MOVINGLINE, origin, "내 답변");
         Answer answerOther = new Answer(2L, ZINGOWORKS, origin, "삭제된 타인 답변");
-        answerOther.delete();
+        answerOther.delete(ZINGOWORKS);
         origin.addAnswer(answerOwn);
         origin.addAnswer(answerOther);
         origin.delete(MOVINGLINE);

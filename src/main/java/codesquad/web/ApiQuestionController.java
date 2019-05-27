@@ -34,7 +34,7 @@ public class ApiQuestionController {
 
     @GetMapping("/{id}")
     public  ResponseEntity<Question> show(@PathVariable Long id) {
-        return new ResponseEntity<>(qnaService.findById(id), HttpStatus.OK);
+        return new ResponseEntity<>(qnaService.findByQuestionId(id), HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
@@ -45,7 +45,7 @@ public class ApiQuestionController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Question> delete(@LoginUser User login, @PathVariable Long id) throws Exception {
-        return new ResponseEntity<>(qnaService.deleteQuestion(login, id), HttpStatus.OK);
+    public ResponseEntity<Question> delete(@LoginUser User loginUser, @PathVariable Long id) throws Exception {
+        return new ResponseEntity<>(qnaService.deleteQuestion(loginUser, id), HttpStatus.OK);
     }
 }
