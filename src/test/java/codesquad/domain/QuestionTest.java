@@ -1,10 +1,14 @@
 package codesquad.domain;
 
-import codesquad.exception.CannotDeleteException;
 import codesquad.exception.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static codesquad.domain.AnswerTest.*;
 import static codesquad.domain.UserTest.MOVINGLINE;
 import static codesquad.domain.UserTest.ZINGOWORKS;
 
@@ -43,63 +47,52 @@ public class QuestionTest extends BaseTest {
         origin.update(ZINGOWORKS, Q_UPDATE.getTitle(), Q_UPDATE.getContents());
     }
 
-    @Test // 삭제 성공 : 답변 없음
-    public void delete() throws Exception {
+    @Test
+    public void delete() {
         Question origin = newQuestion(1L, MOVINGLINE);
+        Answer a1 = newAnswer(1L, MOVINGLINE, origin, false);
+        Answer a2 = newAnswer(2L, MOVINGLINE, origin, true);
+        Answer a3 = newAnswer(3L, ZINGOWORKS, origin, true);
+        origin.addAnswer(a1).addAnswer(a2).addAnswer(a3);
+
         origin.delete(MOVINGLINE);
 
         softly.assertThat(origin.isDeleted()).isTrue();
+        List<Answer> answers = Arrays.asList(a1, a2, a3);
+        for (Answer answer : answers) softly.assertThat(answer.isDeleted()).isTrue();
     }
 
-    @Test(expected = CannotDeleteException.class) // 삭제 실패 : 다른 사람의 답변만 존재
-    public void delete_when_other_user_answer_found() throws Exception {
+    @Test
+    public void delete_check_return_value() {
         Question origin = newQuestion(1L, MOVINGLINE);
-        Answer answer = new Answer(1L, ZINGOWORKS, origin, "답변");
-        origin.addAnswer(answer);
-        origin.delete(MOVINGLINE);
+        Answer a1 = newAnswer(1L, MOVINGLINE, origin, false);
+        Answer a2 = newAnswer(2L, MOVINGLINE, origin, true);
+        Answer a3 = newAnswer(3L, ZINGOWORKS, origin, true);
+        origin.addAnswer(a1).addAnswer(a2).addAnswer(a3);
+
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+
+        DeleteHistory deletedQuestion = new DeleteHistory(ContentType.QUESTION, origin.getId(), origin.getWriter());
+
+        List<DeleteHistory> deletedAnswers;
+        DeleteHistory d1 = new DeleteHistory(ContentType.ANSWER, a1.getId(), a1.getWriter());
+        DeleteHistory d2 = new DeleteHistory(ContentType.ANSWER, a2.getId(), a2.getWriter());
+        DeleteHistory d3 = new DeleteHistory(ContentType.ANSWER, a3.getId(), a3.getWriter());
+        deletedAnswers = Arrays.asList(d1, d2, d3);
+
+        deleteHistories.add(deletedQuestion);
+        deleteHistories.addAll(deletedAnswers);
+
+        softly.assertThat(origin.delete(MOVINGLINE)).isEqualTo(deleteHistories);
     }
 
-    @Test // 삭제 성공 : 다른사람의 삭제된 답변만 존재
-    public void delete_when_other_user_deleted_answer_found() throws Exception {
-        Question origin = newQuestion(1L, MOVINGLINE);
-        Answer answer = new Answer(1L, ZINGOWORKS, origin, "답변");
-        answer.delete(ZINGOWORKS);
-        origin.addAnswer(answer);
-        origin.delete(MOVINGLINE);
-
-        softly.assertThat(origin.isDeleted()).isTrue();
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_when_other_user_access() {
+        Q9.delete(ZINGOWORKS);
     }
 
-    @Test // 삭제 성공 : 내 답변만 존재
-    public void delete_when_only_own_answer_found() throws Exception {
-        Question origin = newQuestion(1L, MOVINGLINE);
-        Answer answer = new Answer(1L, MOVINGLINE, origin, "답변");
-        origin.addAnswer(answer);
-        origin.delete(MOVINGLINE);
-
-        softly.assertThat(origin.isDeleted()).isTrue();
-    }
-
-    @Test //  삭제 성공 : 내 답변과 타인의 삭제된 답변이 존재
-    public void delete_when_own_answer_and_other_deleted_answer_found() throws Exception {
-        Question origin = newQuestion(1L, MOVINGLINE);
-        Answer answerOwn = new Answer(1L, MOVINGLINE, origin, "내 답변");
-        Answer answerOther = new Answer(2L, ZINGOWORKS, origin, "삭제된 타인 답변");
-        answerOther.delete(ZINGOWORKS);
-        origin.addAnswer(answerOwn);
-        origin.addAnswer(answerOther);
-        origin.delete(MOVINGLINE);
-
-        softly.assertThat(origin.isDeleted()).isTrue();
-    }
-
-    @Test(expected = CannotDeleteException.class) // 삭제 실패 : 내 답변과 타인의 답변이 존재
-    public void delete_when_own_answer_and_other_answer_found() throws Exception {
-        Question origin = newQuestion(1L, MOVINGLINE);
-        Answer answerOwn = new Answer(1L, ZINGOWORKS, origin, "내 답변");
-        Answer answerOther = new Answer(2L, MOVINGLINE, origin, "삭제된 타인 답변");
-        origin.addAnswer(answerOwn);
-        origin.addAnswer(answerOther);
-        origin.delete(MOVINGLINE);
+    @Test(expected = IllegalStateException.class)
+    public void delete_when_question_already_deleted() {
+        Q11.delete(MOVINGLINE);
     }
 }

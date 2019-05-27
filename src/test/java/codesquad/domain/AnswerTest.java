@@ -1,8 +1,12 @@
 package codesquad.domain;
 
+import codesquad.exception.CannotDeleteException;
 import codesquad.exception.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static codesquad.domain.QuestionTest.*;
 import static codesquad.domain.UserTest.MOVINGLINE;
@@ -27,14 +31,67 @@ public class AnswerTest extends BaseTest {
     public static final Answer A_NEW = new Answer(MOVINGLINE, "답변의 내용");
     public static final Answer A_UPDATE = new Answer(MOVINGLINE, "답변의 내용수정");
 
+    public static Answer newAnswer(Long id, User user, Question question, boolean deleted) {
+        return new Answer(id, user, question, "contents", deleted);
+    }
+
     @Test
     public void delete() {
-        A1.delete(MOVINGLINE);
-        softly.assertThat(A1.isDeleted()).isTrue();
+        Answer a = newAnswer(1L, MOVINGLINE, Q1, false);
+
+        DeleteHistory deleteHistory = a.delete(MOVINGLINE);
+        softly.assertThat(deleteHistory).isEqualTo(new DeleteHistory(ContentType.ANSWER, a.getId(), a.getWriter()));
+        softly.assertThat(a.isDeleted()).isTrue();
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void delete_when_other_user_access() {
         A1.delete(ZINGOWORKS);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void delete_when_question_already_deleted() {
+        A11.delete(MOVINGLINE);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void delete_when_answer_already_deleted() {
+        A3.delete(ZINGOWORKS);
+    }
+
+    @Test
+    public void deleteAll() {
+        Answer a1 = newAnswer(1L, MOVINGLINE, Q1, false);
+        Answer a2 = newAnswer(2L, MOVINGLINE, Q1, true);
+        Answer a3 = newAnswer(3L, ZINGOWORKS, Q1, true);
+
+        List<Answer> answers = Arrays.asList(a1, a2, a3);
+
+        Answer.deleteAll(answers, MOVINGLINE);
+        for (Answer answer : answers) softly.assertThat(answer.isDeleted()).isTrue();
+    }
+
+    @Test
+    public void deleteAll_check_return_value() {
+        Answer a1 = newAnswer(1L, MOVINGLINE, Q1, false);
+        Answer a2 = newAnswer(2L, MOVINGLINE, Q1, true);
+        Answer a3 = newAnswer(3L, ZINGOWORKS, Q1, true);
+
+        List<Answer> answers = Arrays.asList(a1, a2, a3);
+
+        List<DeleteHistory> deletedAnswers;
+        DeleteHistory d1 = new DeleteHistory(ContentType.ANSWER, a1.getId(), a1.getWriter());
+        DeleteHistory d2 = new DeleteHistory(ContentType.ANSWER, a2.getId(), a2.getWriter());
+        DeleteHistory d3 = new DeleteHistory(ContentType.ANSWER, a3.getId(), a3.getWriter());
+        deletedAnswers = Arrays.asList(d1, d2, d3);
+
+        softly.assertThat(Answer.deleteAll(answers, MOVINGLINE)).isEqualTo(deletedAnswers);
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void deleteAll_when_not_deleted_answer_of_other_user_found() {
+        List<Answer> answers = Arrays.asList(A8, A9, A2);
+
+        Answer.deleteAll(answers, MOVINGLINE);
     }
 }

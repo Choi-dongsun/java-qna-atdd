@@ -124,7 +124,16 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_when_other_user_answer_found() {
+    public void delete_when_question_already_deleted() {
+        String location = String.format("/api/questions/%d", Q3.getId());
+        ResponseEntity<Question> responseEntity = basicAuthTemplate()
+                .exchange(location, HttpMethod.DELETE, HttpEntity.EMPTY, Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void delete_when_not_deleted_answer_of_other_user_found() {
         String location = createResource("/api/questions", Q_NEW);
         ResponseEntity<Question> responseEntity = basicAuthTemplate(ZINGOWORKS)
                 .exchange(location, HttpMethod.DELETE, HttpEntity.EMPTY, Question.class);

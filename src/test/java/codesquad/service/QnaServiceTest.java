@@ -1,9 +1,6 @@
 package codesquad.service;
 
-import codesquad.domain.Answer;
-import codesquad.domain.AnswerRepository;
-import codesquad.domain.Question;
-import codesquad.domain.QuestionRepository;
+import codesquad.domain.*;
 import codesquad.exception.CannotDeleteException;
 import codesquad.exception.UnAuthorizedException;
 import org.junit.Test;
@@ -16,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import support.test.BaseTest;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static codesquad.domain.AnswerTest.*;
@@ -34,6 +33,12 @@ public class QnaServiceTest extends BaseTest {
 
     @Mock
     private AnswerRepository answerRepository;
+
+    @Mock
+    private DeleteHistoryRepository deleteHistoryRepository;
+
+    @Mock
+    private DeleteHistoryService deleteHistoryService;
 
     @InjectMocks
     private QnaService qnaService;
@@ -69,18 +74,6 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test
-    public void findByQuestionIdAndNotDeleted() {
-        when(questionRepository.findById(Q2.getId())).thenReturn(Optional.of(Q2));
-        softly.assertThat(qnaService.findByQuestionIdAndNotDeleted(Q2.getId())).isEqualTo(Q2);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void findByQuestionIdAndNotDeleted_when_question_already_deleted() {
-        when(questionRepository.findById(Q3.getId())).thenReturn(Optional.of(Q3));
-        qnaService.findByQuestionIdAndNotDeleted(Q3.getId());
-    }
-
-    @Test
     public void findByAnswerId() {
         when(answerRepository.findById(A1.getId())).thenReturn(Optional.of(A1));
         softly.assertThat(qnaService.findByAnswerId(A1.getId())).isEqualTo(A1);
@@ -90,18 +83,6 @@ public class QnaServiceTest extends BaseTest {
     public void findByAnswerId_when_answer_not_found() {
         when(answerRepository.findById(A1.getId())).thenReturn(Optional.empty());
         qnaService.findByAnswerId(A1.getId());
-    }
-
-    @Test
-    public void findByAnswerIdAndNotDeleted() {
-        when(answerRepository.findById(A4.getId())).thenReturn(Optional.of(A4));
-        softly.assertThat(qnaService.findByAnswerIdAndNotDeleted(A4.getId())).isEqualTo(A4);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void findByAnswerIdAndNotDeleted_when_answer_already_deleted() {
-        when(answerRepository.findById(A3.getId())).thenReturn(Optional.of(A3));
-        qnaService.findByAnswerIdAndNotDeleted(A3.getId());
     }
 
     @Test
@@ -123,33 +104,46 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test
-    public void delete() throws Exception {
+    public void deleteQuestion() {
         Question origin = newQuestion(1L, MOVINGLINE);
-        when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
+        Answer a1 = newAnswer(1L, MOVINGLINE, origin, false);
+        Answer a2 = newAnswer(2L, MOVINGLINE, origin, true);
+        Answer a3 = newAnswer(3L, ZINGOWORKS, origin, true);
+        origin.addAnswer(a1).addAnswer(a2).addAnswer(a3);
 
-        softly.assertThat(qnaService.deleteQuestion(MOVINGLINE, origin.getId())).isEqualTo(origin);
+        when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
+        Question question = qnaService.deleteQuestion(MOVINGLINE, origin.getId());
+
+        softly.assertThat(question.isDeleted()).isEqualTo(true);
+        List<Answer> answers = Arrays.asList(a1, a2, a3);
+        for (Answer answer : answers) softly.assertThat(answer.isDeleted()).isTrue();
     }
 
     @Test(expected = EntityNotFoundException.class)
-    public void delete_when_question_not_found() throws Exception {
-        Question origin = newQuestion(1L, MOVINGLINE);
-        when(questionRepository.findById(origin.getId())).thenReturn(Optional.empty());
+    public void deleteQuestion_when_question_not_found() {
+        when(questionRepository.findById(Q1.getId())).thenReturn(Optional.empty());
 
-        softly.assertThat(qnaService.deleteQuestion(MOVINGLINE, origin.getId())).isEqualTo(origin);
+        qnaService.deleteQuestion(MOVINGLINE, Q1.getId());
     }
 
     @Test(expected = UnAuthorizedException.class)
-    public void delete_when_other_user_access() throws Exception {
-        Question origin = newQuestion(1L, MOVINGLINE);
-        when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
+    public void deleteQuestion_when_other_user_access() {
+        when(questionRepository.findById(Q1.getId())).thenReturn(Optional.of(Q1));
 
-        softly.assertThat(qnaService.deleteQuestion(ZINGOWORKS, origin.getId())).isEqualTo(origin);
+        qnaService.deleteQuestion(ZINGOWORKS, Q1.getId());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void deleteQuestion_when_question_already_deleted() {
+        when(questionRepository.findById(Q3.getId())).thenReturn(Optional.of(Q3));
+
+        qnaService.deleteQuestion(MOVINGLINE, Q3.getId());
     }
 
     @Test(expected = CannotDeleteException.class)
-    public void delete_when_other_user_answer_found() throws Exception {
+    public void deleteQuestion_when_not_deleted_answer_of_other_user_found() {
         Question origin = newQuestion(1L, MOVINGLINE);
-        Answer answer = new Answer(1L, ZINGOWORKS, origin, "답변");
+        Answer answer = newAnswer(1L, ZINGOWORKS, origin, false);
         origin.addAnswer(answer);
 
         when(questionRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
@@ -173,7 +167,7 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void addAnswer_when_question_deleted() {
+    public void addAnswer_when_question_already_deleted() {
         when(questionRepository.findById(Q3.getId())).thenReturn(Optional.of(Q3));
 
         qnaService.addAnswer(MOVINGLINE, Q3.getId(), A1.getContents());
@@ -181,47 +175,38 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void deleteAnswer() {
-        when(questionRepository.findById(Q8.getId())).thenReturn(Optional.of(Q8));
-        when(answerRepository.findById(A8.getId())).thenReturn(Optional.of(A8));
+        Answer a = newAnswer(1L, MOVINGLINE, Q1, false);
+        when(answerRepository.findById(a.getId())).thenReturn(Optional.of(a));
 
-        softly.assertThat(qnaService.deleteAnswer(MOVINGLINE, Q8.getId(), A8.getId())).isEqualTo(A8);
+        Answer answer = qnaService.deleteAnswer(MOVINGLINE, a.getId());
+        softly.assertThat(answer.isDeleted()).isTrue();
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void deleteAnswer_when_other_user_access() {
-        when(questionRepository.findById(Q2.getId())).thenReturn(Optional.of(Q2));
-        when(answerRepository.findById(A2.getId())).thenReturn(Optional.of(A2));
+        when(answerRepository.findById(A1.getId())).thenReturn(Optional.of(A1));
 
-        qnaService.deleteAnswer(MOVINGLINE, Q2.getId(), A2.getId());
-    }
-
-    @Test(expected = EntityNotFoundException.class)
-    public void deleteAnswer_when_question_not_found() {
-        when(questionRepository.findById(Q1.getId())).thenReturn(Optional.empty());
-
-        qnaService.deleteAnswer(MOVINGLINE, Q1.getId(), A1.getId());
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void deleteAnswer_when_question_already_deleted() {
-        when(questionRepository.findById(Q11.getId())).thenReturn(Optional.of(Q11));
-
-        qnaService.deleteAnswer(MOVINGLINE, Q11.getId(), A11.getId());
+        qnaService.deleteAnswer(ZINGOWORKS, A1.getId());
     }
 
     @Test(expected = EntityNotFoundException.class)
     public void deleteAnswer_when_answer_not_found() {
-        when(questionRepository.findById(Q2.getId())).thenReturn(Optional.of(Q2));
-        when(answerRepository.findById(A2.getId())).thenReturn(Optional.empty());
+        when(answerRepository.findById(A1.getId())).thenReturn(Optional.empty());
 
-        qnaService.deleteAnswer(MOVINGLINE, Q2.getId(), A2.getId());
+        qnaService.deleteAnswer(MOVINGLINE, A1.getId());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void deleteAnswer_when_question_already_deleted() {
+        when(answerRepository.findById(A11.getId())).thenReturn(Optional.of(A11));
+
+        qnaService.deleteAnswer(MOVINGLINE, A11.getId());
     }
 
     @Test(expected = IllegalStateException.class)
     public void deleteAnswer_when_answer_already_deleted() {
-        when(questionRepository.findById(Q9.getId())).thenReturn(Optional.of(Q9));
         when(answerRepository.findById(A9.getId())).thenReturn(Optional.of(A9));
 
-        qnaService.deleteAnswer(MOVINGLINE, Q9.getId(), A9.getId());
+        qnaService.deleteAnswer(MOVINGLINE, A9.getId());
     }
 }
